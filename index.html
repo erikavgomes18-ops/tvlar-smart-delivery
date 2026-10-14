@@ -132,9 +132,9 @@
 <body>
 
 <div class="aviso-global">
-  ⚠️ MVP DEMONSTRATIVO — OCR/IA, otimização real de rotas, sincronização entre dispositivos,
-  login seguro e GPS em segundo plano dependem de integrações externas ainda não configuradas.
-  Todos os dados exibidos são fictícios.
+  ⚠️ MVP DEMONSTRATIVO — O tempo real funciona entre abas/janelas do <strong>mesmo navegador</strong>
+  (grátis, sem conta e sem configuração). Posições dos entregadores fictícios são fixas e apenas ilustrativas;
+  o "Entregador de teste" mostra o GPS capturado manualmente. Dados apenas para teste.
 </div>
 
 <!-- ================= TELA DE LOGIN ================= -->
@@ -154,9 +154,9 @@
       🔑 <strong>Credenciais apenas para teste</strong> (não são reais):<br>
       Administrador — matrícula <strong>1234</strong> / senha <strong>demo123</strong><br>
       Entregador — matrícula <strong>5678</strong> / senha <strong>demo123</strong><br><br>
-      Como o GitHub Pages é estático, não há autenticação segura aqui.
-      A função <code>autenticarNoBackend()</code> no código já está preparada
-      para receber a integração real futura.
+      🧪 <strong>Para ver o tempo real:</strong> abra este site em <strong>duas abas</strong> —
+      entre como administrador em uma e como entregador na outra. Tudo que o entregador fizer
+      aparece na hora no painel do administrador.
     </div>
   </div>
 </section>
@@ -164,8 +164,8 @@
 <!-- ================= CABEÇALHO PÓS-LOGIN ================= -->
 <header id="cabecalho" class="oculto">
   <div class="logo">TVLAR <em>SMART</em> <span>DELIVERY</span></div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <span class="tag-demo">DADOS FICTÍCIOS</span>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span class="tag-demo">🔄 TEMPO REAL · MESMO NAVEGADOR</span>
     <span id="perfil-logado" style="font-size:.8rem;color:var(--texto2)"></span>
     <button class="btn-sair" onclick="sair()">Sair</button>
   </div>
@@ -183,38 +183,54 @@
 
     <div id="admin-painel">
       <div class="metricas">
-        <div class="metrica"><div class="num" id="m-entregadores">4</div><div class="lbl">Entregadores (fictícios)</div></div>
-        <div class="metrica"><div class="num" id="m-rotas">2</div><div class="lbl">Rotas ativas (simuladas)</div></div>
-        <div class="metrica"><div class="num" id="m-entregas">24</div><div class="lbl">Entregas hoje (fictícias)</div></div>
-        <div class="metrica"><div class="num" id="m-pendentes">6</div><div class="lbl">Pendentes (fictícias)</div></div>
+        <div class="metrica"><div class="num" id="m-notas">0</div><div class="lbl">Notas registradas</div></div>
+        <div class="metrica"><div class="num" id="m-validadas">0</div><div class="lbl">Endereços validados</div></div>
+        <div class="metrica"><div class="num" id="m-concluidas">0</div><div class="lbl">Entregas concluídas</div></div>
+        <div class="metrica"><div class="num" id="m-pendentes">0</div><div class="lbl">Pendentes</div></div>
+      </div>
+
+      <div class="card">
+        <h2>🕐 Expediente do entregador</h2>
+        <div id="admin-expediente" style="font-size:.85rem;color:var(--texto2)">⚪ Expediente não iniciado.</div>
+      </div>
+
+      <div class="card">
+        <h2>🔴 Entregas em tempo real</h2>
+        <div class="tabela-scroll">
+          <table>
+            <thead><tr><th>Nota</th><th>Destinatário</th><th>Bairro</th><th>Validação</th><th>Entrega</th></tr></thead>
+            <tbody id="tabela-tempo-real"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="card">
         <h2>🗺️ Mapa demonstrativo</h2>
         <iframe class="mapa" src="https://www.google.com/maps?q=Manaus,AM&output=embed" title="Mapa demonstrativo de Manaus" loading="lazy"></iframe>
-        <p class="mapa-legenda">Mapa de referência da região (Manaus/AM). As posições dos entregadores abaixo são fictícias e não representam GPS real.</p>
-      </div>
-
-      <div class="card">
-        <h2>👥 Entregadores — dados fictícios</h2>
-        <div class="tabela-scroll">
-          <table>
-            <thead><tr><th>Matrícula</th><th>Nome</th><th>Status</th><th>Entregas hoje</th><th>Última atualização</th></tr></thead>
-            <tbody id="tabela-entregadores"></tbody>
-          </table>
-        </div>
+        <p class="mapa-legenda">Mapa de referência da região (Manaus/AM). Não há rastreamento GPS em tempo real.</p>
       </div>
     </div>
 
     <div id="admin-acompanhamento" class="oculto">
       <div class="card">
-        <h2>📍 Acompanhamento de rotas (simulado)</h2>
-        <iframe class="mapa" src="https://www.google.com/maps?q=Manaus,AM&output=embed" title="Mapa de acompanhamento demonstrativo" loading="lazy"></iframe>
-        <p class="mapa-legenda">As rotas e posições exibidas são cenários de demonstração. Não há leitura de GPS real nem coordenadas fixas apresentadas como localização verdadeira.</p>
+        <h2>📍 Onde está cada entregador?</h2>
+        <label class="rotulo" for="seletor-entregador">Selecionar entregador</label>
+        <select id="seletor-entregador" onchange="atualizarMapaEntregador()"></select>
+        <div id="info-entregador-mapa" class="faixa faixa-info"></div>
+        <iframe id="mapa-acompanhamento" class="mapa" src="https://www.google.com/maps?q=Manaus,AM&output=embed"
+          title="Mapa do entregador selecionado" loading="lazy"></iframe>
+        <p class="mapa-legenda">
+          Entregadores com badge "fictício" têm posições de demonstração fixas em Manaus.
+          O "Entregador de teste" mostra a posição real capturada pelo botão "Verificar GPS"
+          na aba do entregador — atualizada em tempo real aqui.
+        </p>
       </div>
+
       <div class="card">
-        <h3>Status das rotas fictícias</h3>
-        <div id="lista-rotas-acompanhamento"></div>
+        <h2>📈 Progresso das entregas (tempo real)</h2>
+        <div class="barra-fundo"><div class="barra-fill" id="barra-admin"></div></div>
+        <div class="progresso-texto" id="texto-admin">Nenhuma parada registrada.</div>
+        <div id="lista-acompanhamento" style="margin-top:12px"></div>
       </div>
     </div>
 
@@ -222,8 +238,8 @@
       <div class="card">
         <h2>🗄️ Dados de teste salvos neste navegador</h2>
         <p style="font-size:.8rem;color:var(--texto2);margin-bottom:10px">
-          Somente dados demonstrativos são salvos no armazenamento local do navegador.
-          Nenhuma fotografia de nota fiscal real ou dado pessoal sensível é armazenado.
+          Os dados ficam no armazenamento local do navegador e são compartilhados entre as abas
+          (administrador e entregador veem os mesmos). Nenhuma foto real é armazenada.
         </p>
         <div id="resumo-dados" style="font-size:.85rem;margin-bottom:12px"></div>
         <button class="btn btn-vermelho" onclick="apagarDados()">🗑️ APAGAR DADOS DE TESTE</button>
@@ -246,6 +262,9 @@
       <p style="font-size:.78rem;color:var(--texto2);margin-bottom:10px">
         A leitura das notas é <strong>simulada</strong> neste MVP. Nenhuma foto é enviada
         para servidores nem salva permanentemente — apenas o nome do arquivo fica no registro de teste.
+      </p>
+      <p class="faixa faixa-info" style="font-size:.75rem">
+        🟢 Tudo que você registrar aparece na hora no painel do administrador (aba aberta neste navegador).
       </p>
       <div class="linha-btn">
         <label class="btn btn-roxo" style="text-align:center">
@@ -278,7 +297,7 @@
 
 <footer>
   TVLAR SMART DELIVERY — MVP demonstrativo para testes de fluxo.<br>
-  Dados fictícios · Sem autenticação real · Sem armazenamento de dados sensíveis.
+  Tempo real entre abas do mesmo navegador · Sem autenticação real · Sem armazenamento de dados sensíveis.
 </footer>
 
 <script>
@@ -292,6 +311,7 @@ const ORDEM_SIMULADA = ['Compensa', 'Raiz', 'Cachoeirinha', 'Japiim', 'Petrópol
 const LIMITE_NOTAS = 10;
 const CHAVE_NOTAS = 'tvlar_sd_notas_demo';
 const CHAVE_EXPEDIENTE = 'tvlar_sd_expediente_demo';
+const CHAVE_GPS = 'tvlar_sd_gps_demo';
 
 /* Usuários de teste — NÃO são credenciais reais. */
 const USUARIOS_DEMO = {
@@ -299,19 +319,12 @@ const USUARIOS_DEMO = {
   '5678': { senha: 'demo123', perfil: 'entregador', nome: 'Entregador (teste)' }
 };
 
-/* Entregadores fictícios do painel administrativo. */
-const ENTREGADORES_FICTICIOS = [
-  { matricula: 'E-001', nome: 'Carlos Souza',   status: 'Em rota',     entregas: 7,  atualizado: 'há 2 min' },
-  { matricula: 'E-002', nome: 'Ana Lima',       status: 'Disponível',  entregas: 0,  atualizado: 'há 5 min' },
-  { matricula: 'E-003', nome: 'João Pereira',   status: 'Em pausa',    entregas: 12, atualizado: 'há 1 min' },
-  { matricula: 'E-004', nome: 'Maria Alves',    status: 'Em rota',     entregas: 5,  atualizado: 'há 3 min' }
-];
-
-/* Rotas fictícias do acompanhamento. */
-const ROTAS_FICTICIAS = [
-  { entregador: 'Carlos Souza',  bairros: ['Compensa', 'Raiz'],     status: 'Em andamento', paradas: 9, concluidas: 4 },
-  { entregador: 'Maria Alves',   bairros: ['Petrópolis', 'Japiim'], status: 'Em andamento', paradas: 8, concluidas: 6 },
-  { entregador: 'João Pereira',  bairros: ['Cachoeirinha'],         status: 'Aguardando',   paradas: 7, concluidas: 0 }
+/* Entregadores fictícios com posições fixas de demonstração em Manaus. */
+const ENTREGADORES_MAPA = [
+  { id: 'e-carlos', nome: 'Carlos Souza', bairro: 'Compensa',     status: 'Em rota',    lat: -3.1367, lng: -60.0589 },
+  { id: 'e-ana',    nome: 'Ana Lima',     bairro: 'Petrópolis',   status: 'Disponível', lat: -3.1346, lng: -60.0233 },
+  { id: 'e-joao',   nome: 'João Pereira', bairro: 'Japiim',       status: 'Em pausa',   lat: -3.1046, lng: -59.9835 },
+  { id: 'e-maria',  nome: 'Maria Alves',  bairro: 'Cachoeirinha', status: 'Em rota',    lat: -3.1291, lng: -60.0147 }
 ];
 
 /* Nomes e ruas fictícios para a leitura simulada de notas. */
@@ -325,6 +338,8 @@ let usuarioLogado = null;
 let expedienteIniciado = false;
 let notas = [];
 let rotaCalculada = null;
+let entregadorSelecionado = 'e-carlos';
+let ultimoSrcMapa = '';
 
 /* ============================================================
    UTILITÁRIOS
@@ -366,6 +381,42 @@ function enderecoCompleto(n) {
 }
 
 /* ============================================================
+   SINCRONIZAÇÃO ENTRE ABAS (GRÁTIS, SEM CONTA, SEM CONFIGURAÇÃO)
+   O navegador avisa as outras abas quando os dados mudam.
+   ============================================================ */
+const CANAL = ('BroadcastChannel' in window) ? new BroadcastChannel('tvlar_sd_sync') : null;
+
+function avisarRede() {
+  try { if (CANAL) CANAL.postMessage({ tipo: 'sync' }); } catch (e) {}
+}
+
+function sincronizar() {
+  /* Preserva as prévias de foto que só existem na memória desta aba. */
+  const fotos = {};
+  notas.forEach(n => { if (n.fotoPrevia) fotos[n.id] = n.fotoPrevia; });
+  carregarLocal();
+  notas.forEach(n => { if (fotos[n.id]) n.fotoPrevia = fotos[n.id]; });
+  if (rotaCalculada) {
+    const ordem = rotaCalculada.map(n => n.id);
+    rotaCalculada = ordem.map(id => notas.find(n => n.id === id)).filter(Boolean);
+  }
+  if (!usuarioLogado) return;
+  if (usuarioLogado.perfil === 'administrador') {
+    renderizarAdmin();
+    renderizarAcompanhamento();
+  } else {
+    renderizarExpediente();
+    renderizarNotas();
+    renderizarParadas();
+  }
+}
+
+if (CANAL) CANAL.onmessage = sincronizar;
+window.addEventListener('storage', e => {
+  if (e.key === CHAVE_NOTAS || e.key === CHAVE_EXPEDIENTE || e.key === CHAVE_GPS || e.key === null) sincronizar();
+});
+
+/* ============================================================
    AUTENTICAÇÃO (DEMONSTRATIVA)
    Ponto de integração futura: substituir a verificação abaixo
    por uma chamada real ao backend (ex.: fetch('/api/login')).
@@ -401,6 +452,7 @@ $('form-login').addEventListener('submit', function (e) {
     if (r.perfil === 'administrador') {
       mostrarTela('tela-admin');
       renderizarAdmin();
+      renderizarAcompanhamento();
     } else {
       mostrarTela('tela-entregador');
       renderizarEntregador();
@@ -414,34 +466,130 @@ function sair() {
 }
 
 /* ============================================================
-   PAINEL ADMINISTRATIVO
+   PAINEL ADMINISTRATIVO (DADOS REAIS, EM TEMPO REAL)
    ============================================================ */
 function trocarAbaAdmin(aba) {
   ['painel', 'acompanhamento', 'dados'].forEach(a => $('admin-' + a).classList.add('oculto'));
   $('admin-' + aba).classList.remove('oculto');
   document.querySelectorAll('#tela-admin .aba').forEach(b => b.classList.remove('ativa'));
   event.currentTarget.classList.add('ativa');
+  if (aba === 'painel') renderizarAdmin();
+  if (aba === 'acompanhamento') renderizarAcompanhamento();
   if (aba === 'dados') renderizarResumoDados();
 }
 
 function renderizarAdmin() {
-  const totalEntregas = ENTREGADORES_FICTICIOS.reduce((s, e) => s + e.entregas, 0);
-  $('m-entregadores').textContent = ENTREGADORES_FICTICIOS.length;
-  $('m-entregas').textContent = totalEntregas;
-  $('m-pendentes').textContent = Math.max(0, totalEntregas - 18);
-  $('tabela-entregadores').innerHTML = ENTREGADORES_FICTICIOS.map(e =>
-    '<tr><td>' + e.matricula + '</td><td>' + e.nome + '</td>' +
-    '<td><span class="badge b-status">' + e.status + '</span></td>' +
-    '<td>' + e.entregas + '</td><td>' + e.atualizado + '</td></tr>'
-  ).join('');
-  $('lista-rotas-acompanhamento').innerHTML = ROTAS_FICTICIAS.map(r => {
-    const pct = r.paradas ? Math.round(100 * r.concluidas / r.paradas) : 0;
-    return '<div class="lista-item"><div class="topo"><strong>🛵 ' + r.entregador + '</strong>' +
-      '<span class="badge b-status">' + r.status + '</span></div>' +
-      '<small style="color:var(--texto2)">Bairros: ' + r.bairros.join(', ') + ' (simulado)</small>' +
-      '<div class="barra-fundo" style="margin-top:8px"><div class="barra-fill" style="width:' + pct + '%"></div></div>' +
-      '<div class="progresso-texto">' + r.concluidas + ' de ' + r.paradas + ' paradas (' + pct + '%)</div></div>';
-  }).join('');
+  const total = notas.length;
+  const validadas = notas.filter(n => n.statusValidacao === 'validado').length;
+  const concluidas = notas.filter(n => n.concluida === true).length;
+
+  $('m-notas').textContent = total;
+  $('m-validadas').textContent = validadas;
+  $('m-concluidas').textContent = concluidas;
+  $('m-pendentes').textContent = total - concluidas;
+
+  $('admin-expediente').innerHTML = expedienteIniciado
+    ? '🟢 <strong>Entregador em expediente</strong> — atualizado em tempo real.'
+    : '⚪ Expediente não iniciado pelo entregador.';
+
+  const corpo = $('tabela-tempo-real');
+  if (!total) {
+    corpo.innerHTML = '<tr><td colspan="5">Nenhuma entrega registrada. Abra o app em outra aba como ' +
+      'entregador e registre notas — elas aparecem aqui na hora.</td></tr>';
+  } else {
+    corpo.innerHTML = notas.slice().reverse().map(n =>
+      '<tr><td>' + n.numeroNota + '</td>' +
+      '<td>' + (n.destinatario || '—') + '</td>' +
+      '<td>' + (n.bairro || '—') + '</td>' +
+      '<td>' + badgeStatus(n.statusValidacao) + '</td>' +
+      '<td>' + (n.concluida === true ? '✅ Entregue' : (n.concluida === false ? '❌ Não realizada' : '⏳ Pendente')) + '</td></tr>'
+    ).join('');
+  }
+}
+
+/* ============================================================
+   ACOMPANHAMENTO — SELETOR DE ENTREGADOR + MAPA
+   ============================================================ */
+function obterGpsEntregador() {
+  try {
+    const g = JSON.parse(localStorage.getItem(CHAVE_GPS) || 'null');
+    if (g && typeof g.lat === 'number' && typeof g.lng === 'number') return g;
+  } catch (e) {}
+  return null;
+}
+
+function popularSeletorEntregadores() {
+  const sel = $('seletor-entregador');
+  const gps = obterGpsEntregador();
+  let opcoes = '';
+  if (gps) opcoes += '<option value="real">🛵 Entregador de teste (GPS real)</option>';
+  ENTREGADORES_MAPA.forEach(e => {
+    opcoes += '<option value="' + e.id + '">' + e.nome + ' — ' + e.bairro + ' (fictício)</option>';
+  });
+  sel.innerHTML = opcoes;
+  sel.value = entregadorSelecionado;
+  /* Se a opção guardada não existe mais (ex.: GPS apagado), volta para a primeira. */
+  if (sel.value !== entregadorSelecionado) {
+    entregadorSelecionado = sel.options[0].value;
+    sel.value = entregadorSelecionado;
+  }
+}
+
+function atualizarMapaEntregador() {
+  const sel = $('seletor-entregador');
+  const info = $('info-entregador-mapa');
+  const mapa = $('mapa-acompanhamento');
+  if (!sel || !info || !mapa) return;
+  entregadorSelecionado = sel.value;
+
+  let novaSrc = '', htmlInfo = '';
+
+  if (entregadorSelecionado === 'real') {
+    const g = obterGpsEntregador();
+    if (g) {
+      novaSrc = 'https://www.google.com/maps?q=' + g.lat + ',' + g.lng + '&z=16&output=embed';
+      const quando = g.quando ? new Date(g.quando).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—';
+      htmlInfo = '🟢 <strong>Entregador de teste</strong> — posição real capturada pelo GPS do aparelho.' +
+        '<br>Coordenadas: ' + g.lat.toFixed(5) + ', ' + g.lng.toFixed(5) +
+        '<br>Atualizado às ' + quando;
+    } else {
+      novaSrc = 'https://www.google.com/maps?q=Manaus,AM&output=embed';
+      htmlInfo = '⚪ O entregador de teste ainda não verificou o GPS.';
+    }
+  } else {
+    const e = ENTREGADORES_MAPA.find(x => x.id === entregadorSelecionado);
+    if (!e) return;
+    novaSrc = 'https://www.google.com/maps?q=' + e.lat + ',' + e.lng + '&z=15&output=embed';
+    htmlInfo = '📍 <strong>' + e.nome + '</strong> <span class="badge b-status">posição fictícia</span>' +
+      '<br>Bairro: ' + e.bairro + ' · Status: ' + e.status +
+      '<br>Coordenadas de demonstração: ' + e.lat + ', ' + e.lng;
+  }
+
+  /* Só recarrega o mapa se a posição mudou (evita piscar a cada sincronização). */
+  if (mapa.src !== novaSrc) mapa.src = novaSrc;
+  ultimoSrcMapa = novaSrc;
+  info.className = 'faixa ' + (entregadorSelecionado === 'real' && obterGpsEntregador() ? 'faixa-ok' : 'faixa-info');
+  info.innerHTML = htmlInfo;
+}
+
+function renderizarAcompanhamento() {
+  popularSeletorEntregadores();
+  atualizarMapaEntregador();
+
+  const total = notas.length;
+  const feitas = notas.filter(n => n.concluida === true).length;
+  const pct = total ? Math.round(100 * feitas / total) : 0;
+  $('barra-admin').style.width = pct + '%';
+  $('texto-admin').textContent = feitas + ' de ' + total + ' entregas concluídas (' + pct + '%)';
+
+  $('lista-acompanhamento').innerHTML = total
+    ? notas.slice().reverse().map(n =>
+        '<div class="lista-item"><div class="topo"><strong>📄 ' + n.numeroNota + ' — ' + (n.destinatario || '—') + '</strong>' +
+        '<span>' + (n.concluida === true ? '✅' : (n.concluida === false ? '❌' : '⏳')) + '</span></div>' +
+        '<small style="color:var(--texto2)">' + (n.endereco || '—') + (n.numero ? ', ' + n.numero : '') + ' · ' + (n.bairro || '—') + '</small>' +
+        '<div style="margin-top:6px">' + badgeStatus(n.statusValidacao) + '</div></div>'
+      ).join('')
+    : '<p style="font-size:.8rem;color:var(--texto2)">Nenhuma parada registrada.</p>';
 }
 
 function renderizarResumoDados() {
@@ -459,14 +607,15 @@ function renderizarResumoDados() {
 function alternarExpediente() {
   expedienteIniciado = !expedienteIniciado;
   localStorage.setItem(CHAVE_EXPEDIENTE, expedienteIniciado ? 'sim' : 'nao');
+  avisarRede();
   renderizarExpediente();
-  mostrarToast(expedienteIniciado ? 'Expediente iniciado (demonstração).' : 'Expediente encerrado.', 'ok');
+  mostrarToast(expedienteIniciado ? 'Expediente iniciado.' : 'Expediente encerrado.', 'ok');
 }
 
 function renderizarExpediente() {
   const btn = $('btn-expediente');
   if (expedienteIniciado) {
-    $('expediente-status').innerHTML = '🟢 <strong>Expediente em andamento</strong> (demonstrativo) — iniciado às ' +
+    $('expediente-status').innerHTML = '🟢 <strong>Expediente em andamento</strong> — iniciado às ' +
       new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     btn.textContent = '⏹️ ENCERRAR EXPEDIENTE';
     btn.className = 'btn btn-vermelho';
@@ -489,10 +638,17 @@ function obterGPS() {
   saida.innerHTML = '<span class="carregando"></span>Buscando localização...';
   navigator.geolocation.getCurrentPosition(
     pos => {
+      /* Salva a posição para o administrador ver no mapa (tempo real entre abas). */
+      localStorage.setItem(CHAVE_GPS, JSON.stringify({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        quando: new Date().toISOString()
+      }));
+      avisarRede();
       saida.className = 'faixa faixa-ok';
-      saida.textContent = '📡 Posição capturada (apenas para exibição neste teste): ' +
+      saida.textContent = '📡 Posição capturada e enviada ao painel do administrador: ' +
         pos.coords.latitude.toFixed(5) + ', ' + pos.coords.longitude.toFixed(5) +
-        ' — não é rastreamento em tempo real.';
+        ' — toque novamente aqui para atualizar (não é rastreamento automático).';
     },
     () => {
       saida.className = 'faixa faixa-erro';
@@ -573,7 +729,7 @@ function renderizarNotas() {
   cont.innerHTML = notas.map(n =>
     '<div class="lista-item">' +
       '<div class="topo"><strong>📄 ' + n.numeroNota + '</strong>' + badgeStatus(n.statusValidacao) + '</div>' +
-      '<img class="previa" src="' + n.fotoPrevia + '" alt="Prévia da foto da nota (demonstração)">' +
+      (n.fotoPrevia ? '<img class="previa" src="' + n.fotoPrevia + '" alt="Prévia da foto da nota (demonstração)">' : '') +
       '<small style="color:var(--texto2)">Arquivo: ' + n.fotoNome + '</small>' +
       '<div class="grid-form" style="margin-top:10px">' +
         campoNota(n, 'numeroNota', 'Nº da nota') +
@@ -729,11 +885,12 @@ function abrirGoogleMaps() {
 }
 
 /* ============================================================
-   ARMAZENAMENTO LOCAL (SOMENTE DADOS DEMO)
+   ARMAZENAMENTO LOCAL (COMPARTILHADO ENTRE AS ABAS)
    ============================================================ */
 function salvarLocal() {
   const limpas = notas.map(n => ({ ...n, fotoPrevia: undefined }));
   localStorage.setItem(CHAVE_NOTAS, JSON.stringify(limpas));
+  avisarRede();
 }
 
 function carregarLocal() {
@@ -748,9 +905,12 @@ function apagarDados() {
   if (!confirm('Apagar todos os dados de teste salvos neste navegador?')) return;
   localStorage.removeItem(CHAVE_NOTAS);
   localStorage.removeItem(CHAVE_EXPEDIENTE);
+  localStorage.removeItem(CHAVE_GPS);
   notas = [];
   rotaCalculada = null;
   expedienteIniciado = false;
+  entregadorSelecionado = 'e-carlos';
+  avisarRede();
   renderizarNotas();
   renderizarParadas();
   renderizarExpediente();

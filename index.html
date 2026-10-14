@@ -1,1 +1,776 @@
-Adiciona MVP index.html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TVLAR SMART DELIVERY — MVP Demonstrativo</title>
+<style>
+  :root{
+    --fundo:#0f1117; --painel:#171a23; --painel2:#1e2230; --borda:#2a2f42;
+    --texto:#e8eaf2; --texto2:#9aa1b5;
+    --roxo:#8b5cf6; --roxo-escuro:#6d28d9; --verde:#22c55e; --verde-escuro:#15803d;
+    --vermelho:#ef4444; --amarelo:#f59e0b; --azul:#3b82f6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+  body{background:var(--fundo);color:var(--texto);min-height:100vh}
+  .oculto{display:none !important}
+
+  .aviso-global{background:#2b2410;border-bottom:1px solid var(--amarelo);color:#fde68a;
+    font-size:.78rem;padding:8px 14px;text-align:center;line-height:1.4}
+
+  header{background:var(--painel);border-bottom:2px solid var(--roxo-escuro);
+    padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .logo{font-weight:800;font-size:1.05rem;letter-spacing:.5px}
+  .logo span{color:var(--verde)}
+  .logo em{color:var(--roxo);font-style:normal}
+  .tag-demo{background:#3a2f10;color:var(--amarelo);border:1px solid var(--amarelo);
+    font-size:.65rem;padding:2px 8px;border-radius:20px;font-weight:700}
+  .btn-sair{background:transparent;border:1px solid var(--borda);color:var(--texto2);
+    padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.8rem}
+  .btn-sair:hover{border-color:var(--roxo);color:var(--texto)}
+
+  main{max-width:1100px;margin:0 auto;padding:16px}
+
+  .card{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:16px;margin-bottom:16px}
+  .card h2{font-size:1rem;margin-bottom:12px;color:var(--roxo)}
+  .card h3{font-size:.9rem;margin-bottom:8px}
+  .rotulo{display:block;font-size:.75rem;color:var(--texto2);margin:8px 0 4px}
+  input,select,textarea{width:100%;background:var(--painel2);border:1px solid var(--borda);
+    color:var(--texto);padding:10px;border-radius:8px;font-size:.9rem}
+  input:focus,select:focus{outline:none;border-color:var(--roxo)}
+  .btn{border:none;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer;
+    font-size:.85rem;transition:filter .15s;width:100%;margin-top:10px}
+  .btn:hover{filter:brightness(1.15)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-roxo{background:var(--roxo);color:#fff}
+  .btn-verde{background:var(--verde-escuro);color:#fff}
+  .btn-vermelho{background:transparent;border:1px solid var(--vermelho);color:var(--vermelho)}
+  .btn-contorno{background:transparent;border:1px solid var(--borda);color:var(--texto)}
+  .btn-mini{width:auto;padding:6px 12px;font-size:.72rem;margin:0}
+  .linha-btn{display:flex;gap:8px;flex-wrap:wrap}
+  .linha-btn .btn{width:auto;flex:1;min-width:130px}
+
+  .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:99;
+    padding:12px 20px;border-radius:10px;font-size:.85rem;font-weight:600;max-width:92vw;
+    box-shadow:0 6px 20px rgba(0,0,0,.5)}
+  .toast-ok{background:var(--verde-escuro);color:#fff}
+  .toast-erro{background:var(--vermelho);color:#fff}
+  .toast-info{background:var(--roxo-escuro);color:#fff}
+  .toast-alerta{background:var(--amarelo);color:#1a1a1a}
+  .carregando{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);
+    border-top-color:#fff;border-radius:50%;animation:girar .8s linear infinite;vertical-align:-3px;margin-right:6px}
+  @keyframes girar{to{transform:rotate(360deg)}}
+  .faixa{padding:10px 14px;border-radius:10px;font-size:.8rem;margin:10px 0;line-height:1.4}
+  .faixa-erro{background:#3a1518;border:1px solid var(--vermelho);color:#fca5a5}
+  .faixa-alerta{background:#2b2410;border:1px solid var(--amarelo);color:#fde68a}
+  .faixa-info{background:#1e1b3a;border:1px solid var(--roxo);color:#c4b5fd}
+  .faixa-ok{background:#0f2a1a;border:1px solid var(--verde);color:#86efac}
+
+  #tela-login{display:flex;align-items:center;justify-content:center;min-height:80vh;padding:16px}
+  .card-login{background:var(--painel);border:1px solid var(--borda);border-top:4px solid var(--roxo);
+    border-radius:16px;padding:28px;width:100%;max-width:380px}
+  .card-login h1{font-size:1.3rem;text-align:center;margin-bottom:4px}
+  .card-login p.sub{text-align:center;color:var(--texto2);font-size:.8rem;margin-bottom:18px}
+  .dica-demo{background:var(--painel2);border:1px dashed var(--borda);border-radius:10px;
+    padding:10px;font-size:.72rem;color:var(--texto2);margin-top:14px;line-height:1.5}
+
+  .abas{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .aba{background:var(--painel2);border:1px solid var(--borda);color:var(--texto2);
+    padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600}
+  .aba.ativa{background:var(--roxo-escuro);color:#fff;border-color:var(--roxo)}
+
+  .lista-item{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;
+    padding:12px;margin-bottom:10px}
+  .lista-item .topo{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .badge{font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:20px}
+  .b-validado{background:#0f2a1a;color:var(--verde);border:1px solid var(--verde)}
+  .b-incompleto{background:#2b2410;color:var(--amarelo);border:1px solid var(--amarelo)}
+  .b-duplicado{background:#3a1518;color:var(--vermelho);border:1px solid var(--vermelho)}
+  .b-pendente{background:var(--painel);color:var(--texto2);border:1px solid var(--borda)}
+  .b-entregue{background:#0f2a1a;color:var(--verde);border:1px solid var(--verde)}
+  .b-nao{background:#3a1518;color:var(--vermelho);border:1px solid var(--vermelho)}
+  .b-status{background:#1e1b3a;color:#c4b5fd;border:1px solid var(--roxo)}
+  .grid-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .previa{width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--borda);margin-top:8px}
+
+  .barra-fundo{background:var(--painel2);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--borda)}
+  .barra-fill{background:linear-gradient(90deg,var(--roxo),var(--verde));height:100%;width:0%;transition:width .4s}
+  .progresso-texto{font-size:.78rem;color:var(--texto2);margin-top:6px}
+
+  .mapa{width:100%;height:300px;border:0;border-radius:12px;border:1px solid var(--borda)}
+  .mapa-legenda{font-size:.7rem;color:var(--texto2);margin-top:6px}
+
+  .metricas{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .metrica{background:var(--painel);border:1px solid var(--borda);border-radius:12px;padding:14px;text-align:center}
+  .metrica .num{font-size:1.5rem;font-weight:800;color:var(--verde)}
+  .metrica .lbl{font-size:.7rem;color:var(--texto2);margin-top:4px}
+
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--borda)}
+  th{color:var(--texto2);font-size:.7rem;text-transform:uppercase}
+  .tabela-scroll{overflow-x:auto}
+
+  .parada{display:flex;align-items:center;gap:10px;background:var(--painel2);
+    border:1px solid var(--borda);border-radius:10px;padding:10px;margin-bottom:8px}
+  .parada .ordem{background:var(--roxo);color:#fff;font-weight:800;width:30px;height:30px;
+    border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem}
+  .parada.feita{opacity:.55;border-color:var(--verde)}
+  .parada.nao-feita{opacity:.55;border-color:var(--vermelho)}
+  .parada .info{flex:1;min-width:0}
+  .parada .info strong{font-size:.85rem}
+  .parada .info small{color:var(--texto2);display:block;font-size:.72rem}
+
+  footer{text-align:center;color:var(--texto2);font-size:.7rem;padding:20px;line-height:1.6}
+
+  @media(max-width:640px){
+    .grid-form{grid-template-columns:1fr}
+    .mapa{height:220px}
+    .metricas{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="aviso-global">
+  ⚠️ MVP DEMONSTRATIVO — OCR/IA, otimização real de rotas, sincronização entre dispositivos,
+  login seguro e GPS em segundo plano dependem de integrações externas ainda não configuradas.
+  Todos os dados exibidos são fictícios.
+</div>
+
+<!-- ================= TELA DE LOGIN ================= -->
+<section id="tela-login">
+  <div class="card-login">
+    <h1>TVLAR <em style="color:var(--roxo);font-style:normal">SMART</em> <span style="color:var(--verde)">DELIVERY</span></h1>
+    <p class="sub">Gestão de entregas — acesso por matrícula</p>
+    <form id="form-login">
+      <label class="rotulo" for="matricula">Matrícula</label>
+      <input type="text" id="matricula" placeholder="Ex.: 1234" autocomplete="username" required>
+      <label class="rotulo" for="senha">Senha</label>
+      <input type="password" id="senha" placeholder="Senha de teste" autocomplete="current-password" required>
+      <button type="submit" class="btn btn-roxo" id="btn-entrar">ENTRAR</button>
+    </form>
+    <div id="login-erro" class="faixa faixa-erro oculto"></div>
+    <div class="dica-demo">
+      🔑 <strong>Credenciais apenas para teste</strong> (não são reais):<br>
+      Administrador — matrícula <strong>1234</strong> / senha <strong>demo123</strong><br>
+      Entregador — matrícula <strong>5678</strong> / senha <strong>demo123</strong><br><br>
+      Como o GitHub Pages é estático, não há autenticação segura aqui.
+      A função <code>autenticarNoBackend()</code> no código já está preparada
+      para receber a integração real futura.
+    </div>
+  </div>
+</section>
+
+<!-- ================= CABEÇALHO PÓS-LOGIN ================= -->
+<header id="cabecalho" class="oculto">
+  <div class="logo">TVLAR <em>SMART</em> <span>DELIVERY</span></div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="tag-demo">DADOS FICTÍCIOS</span>
+    <span id="perfil-logado" style="font-size:.8rem;color:var(--texto2)"></span>
+    <button class="btn-sair" onclick="sair()">Sair</button>
+  </div>
+</header>
+
+<main id="conteudo" class="oculto">
+
+  <!-- ================= PAINEL ADMINISTRATIVO ================= -->
+  <section id="tela-admin" class="oculto">
+    <div class="abas">
+      <button class="aba ativa" onclick="trocarAbaAdmin('painel')">Painel</button>
+      <button class="aba" onclick="trocarAbaAdmin('acompanhamento')">Acompanhamento</button>
+      <button class="aba" onclick="trocarAbaAdmin('dados')">Dados de teste</button>
+    </div>
+
+    <div id="admin-painel">
+      <div class="metricas">
+        <div class="metrica"><div class="num" id="m-entregadores">4</div><div class="lbl">Entregadores (fictícios)</div></div>
+        <div class="metrica"><div class="num" id="m-rotas">2</div><div class="lbl">Rotas ativas (simuladas)</div></div>
+        <div class="metrica"><div class="num" id="m-entregas">24</div><div class="lbl">Entregas hoje (fictícias)</div></div>
+        <div class="metrica"><div class="num" id="m-pendentes">6</div><div class="lbl">Pendentes (fictícias)</div></div>
+      </div>
+
+      <div class="card">
+        <h2>🗺️ Mapa demonstrativo</h2>
+        <iframe class="mapa" src="https://www.google.com/maps?q=Manaus,AM&output=embed" title="Mapa demonstrativo de Manaus" loading="lazy"></iframe>
+        <p class="mapa-legenda">Mapa de referência da região (Manaus/AM). As posições dos entregadores abaixo são fictícias e não representam GPS real.</p>
+      </div>
+
+      <div class="card">
+        <h2>👥 Entregadores — dados fictícios</h2>
+        <div class="tabela-scroll">
+          <table>
+            <thead><tr><th>Matrícula</th><th>Nome</th><th>Status</th><th>Entregas hoje</th><th>Última atualização</th></tr></thead>
+            <tbody id="tabela-entregadores"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="admin-acompanhamento" class="oculto">
+      <div class="card">
+        <h2>📍 Acompanhamento de rotas (simulado)</h2>
+        <iframe class="mapa" src="https://www.google.com/maps?q=Manaus,AM&output=embed" title="Mapa de acompanhamento demonstrativo" loading="lazy"></iframe>
+        <p class="mapa-legenda">As rotas e posições exibidas são cenários de demonstração. Não há leitura de GPS real nem coordenadas fixas apresentadas como localização verdadeira.</p>
+      </div>
+      <div class="card">
+        <h3>Status das rotas fictícias</h3>
+        <div id="lista-rotas-acompanhamento"></div>
+      </div>
+    </div>
+
+    <div id="admin-dados" class="oculto">
+      <div class="card">
+        <h2>🗄️ Dados de teste salvos neste navegador</h2>
+        <p style="font-size:.8rem;color:var(--texto2);margin-bottom:10px">
+          Somente dados demonstrativos são salvos no armazenamento local do navegador.
+          Nenhuma fotografia de nota fiscal real ou dado pessoal sensível é armazenado.
+        </p>
+        <div id="resumo-dados" style="font-size:.85rem;margin-bottom:12px"></div>
+        <button class="btn btn-vermelho" onclick="apagarDados()">🗑️ APAGAR DADOS DE TESTE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TELA DO ENTREGADOR ================= -->
+  <section id="tela-entregador" class="oculto">
+    <div class="card">
+      <h2>🕐 Expediente</h2>
+      <div id="expediente-status" style="font-size:.85rem;color:var(--texto2)">Expediente não iniciado.</div>
+      <button class="btn btn-verde" id="btn-expediente" onclick="alternarExpediente()">▶️ INICIAR EXPEDIENTE</button>
+      <div id="gps-resultado" class="oculto"></div>
+      <button class="btn btn-contorno" onclick="obterGPS()">📡 Verificar GPS deste dispositivo</button>
+    </div>
+
+    <div class="card">
+      <h2>📸 Registrar notas fiscais (máx. 10 no teste)</h2>
+      <p style="font-size:.78rem;color:var(--texto2);margin-bottom:10px">
+        A leitura das notas é <strong>simulada</strong> neste MVP. Nenhuma foto é enviada
+        para servidores nem salva permanentemente — apenas o nome do arquivo fica no registro de teste.
+      </p>
+      <div class="linha-btn">
+        <label class="btn btn-roxo" style="text-align:center">
+          📷 Câmera
+          <input type="file" id="input-camera" accept="image/*" capture="environment" multiple class="oculto" onchange="fotosSelecionadas(this)">
+        </label>
+        <label class="btn btn-contorno" style="text-align:center">
+          🖼️ Galeria
+          <input type="file" id="input-galeria" accept="image/*" multiple class="oculto" onchange="fotosSelecionadas(this)">
+        </label>
+      </div>
+      <div id="faixa-leitura"></div>
+      <div id="lista-notas"></div>
+      <div class="linha-btn" style="margin-top:12px">
+        <button class="btn btn-roxo" onclick="calcularRota()">🧮 CALCULAR MELHOR ROTA</button>
+        <button class="btn btn-verde" onclick="abrirGoogleMaps()">🗺️ ABRIR NO GOOGLE MAPS</button>
+      </div>
+      <div id="faixa-rota"></div>
+    </div>
+
+    <div class="card">
+      <h2>✅ Paradas do dia</h2>
+      <div class="barra-fundo"><div class="barra-fill" id="barra-progresso"></div></div>
+      <div class="progresso-texto" id="texto-progresso">Nenhuma parada registrada.</div>
+      <div id="lista-paradas" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  TVLAR SMART DELIVERY — MVP demonstrativo para testes de fluxo.<br>
+  Dados fictícios · Sem autenticação real · Sem armazenamento de dados sensíveis.
+</footer>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CONFIGURAÇÃO DEMO
+   ============================================================ */
+const BAIRROS_TESTE = ['Compensa', 'Petrópolis', 'Japiim', 'Cachoeirinha', 'Raiz'];
+const ORDEM_SIMULADA = ['Compensa', 'Raiz', 'Cachoeirinha', 'Japiim', 'Petrópolis'];
+const LIMITE_NOTAS = 10;
+const CHAVE_NOTAS = 'tvlar_sd_notas_demo';
+const CHAVE_EXPEDIENTE = 'tvlar_sd_expediente_demo';
+
+/* Usuários de teste — NÃO são credenciais reais. */
+const USUARIOS_DEMO = {
+  '1234': { senha: 'demo123', perfil: 'administrador', nome: 'Administrador (teste)' },
+  '5678': { senha: 'demo123', perfil: 'entregador', nome: 'Entregador (teste)' }
+};
+
+/* Entregadores fictícios do painel administrativo. */
+const ENTREGADORES_FICTICIOS = [
+  { matricula: 'E-001', nome: 'Carlos Souza',   status: 'Em rota',     entregas: 7,  atualizado: 'há 2 min' },
+  { matricula: 'E-002', nome: 'Ana Lima',       status: 'Disponível',  entregas: 0,  atualizado: 'há 5 min' },
+  { matricula: 'E-003', nome: 'João Pereira',   status: 'Em pausa',    entregas: 12, atualizado: 'há 1 min' },
+  { matricula: 'E-004', nome: 'Maria Alves',    status: 'Em rota',     entregas: 5,  atualizado: 'há 3 min' }
+];
+
+/* Rotas fictícias do acompanhamento. */
+const ROTAS_FICTICIAS = [
+  { entregador: 'Carlos Souza',  bairros: ['Compensa', 'Raiz'],     status: 'Em andamento', paradas: 9, concluidas: 4 },
+  { entregador: 'Maria Alves',   bairros: ['Petrópolis', 'Japiim'], status: 'Em andamento', paradas: 8, concluidas: 6 },
+  { entregador: 'João Pereira',  bairros: ['Cachoeirinha'],         status: 'Aguardando',   paradas: 7, concluidas: 0 }
+];
+
+/* Nomes e ruas fictícios para a leitura simulada de notas. */
+const NOMES_DEMO = ['Maria S.', 'João P.', 'Ana C.', 'Pedro L.', 'Carla M.', 'Lucas F.', 'Rita T.', 'Paulo R.'];
+const RUAS_DEMO = ['Rua das Palmeiras', 'Av. Principal', 'Rua do Comércio', 'Travessa São João', 'Rua Bela Vista'];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+let usuarioLogado = null;
+let expedienteIniciado = false;
+let notas = [];
+let rotaCalculada = null;
+
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
+function $(id) { return document.getElementById(id); }
+
+function mostrarToast(msg, tipo) {
+  const antigo = document.querySelector('.toast');
+  if (antigo) antigo.remove();
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + tipo;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function mostrarTela(id) {
+  ['tela-login', 'tela-admin', 'tela-entregador'].forEach(s => $(s).classList.add('oculto'));
+  $(id).classList.remove('oculto');
+  $('cabecalho').classList.toggle('oculto', id === 'tela-login');
+  $('conteudo').classList.toggle('oculto', id === 'tela-login');
+  window.scrollTo(0, 0);
+}
+
+function badgeStatus(status) {
+  const mapa = {
+    validado:   ['b-validado',   '✅ Validado'],
+    incompleto: ['b-incompleto', '⚠️ Endereço incompleto'],
+    duplicado:  ['b-duplicado',  '❌ Nota duplicada'],
+    pendente:   ['b-pendente',   '⏳ Pendente']
+  };
+  const m = mapa[status] || mapa.pendente;
+  return '<span class="badge ' + m[0] + '">' + m[1] + '</span>';
+}
+
+function enderecoCompleto(n) {
+  return !!(n.endereco && n.endereco.trim() && n.numero && n.numero.trim() &&
+            n.bairro && n.cidade && n.cep && n.cep.replace(/\D/g, '').length === 8);
+}
+
+/* ============================================================
+   AUTENTICAÇÃO (DEMONSTRATIVA)
+   Ponto de integração futura: substituir a verificação abaixo
+   por uma chamada real ao backend (ex.: fetch('/api/login')).
+   NÃO usar localStorage como mecanismo de autenticação.
+   ============================================================ */
+function autenticarNoBackend(matricula, senha) {
+  /* FUTURO: return fetch('/api/login', {method:'POST', body: JSON.stringify({matricula, senha})}) */
+  const u = USUARIOS_DEMO[matricula];
+  if (u && u.senha === senha) return { ok: true, perfil: u.perfil, nome: u.nome };
+  return { ok: false };
+}
+
+$('form-login').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const matricula = $('matricula').value.trim();
+  const senha = $('senha').value;
+  const btn = $('btn-entrar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="carregando"></span>Verificando...';
+  setTimeout(() => {
+    const r = autenticarNoBackend(matricula, senha);
+    btn.disabled = false;
+    btn.textContent = 'ENTRAR';
+    if (!r.ok) {
+      const erro = $('login-erro');
+      erro.textContent = '❌ Matrícula ou senha inválidas. Use as credenciais de teste.';
+      erro.classList.remove('oculto');
+      return;
+    }
+    $('login-erro').classList.add('oculto');
+    usuarioLogado = r;
+    $('perfil-logado').textContent = r.perfil === 'administrador' ? '👤 Administrador' : '🛵 Entregador';
+    if (r.perfil === 'administrador') {
+      mostrarTela('tela-admin');
+      renderizarAdmin();
+    } else {
+      mostrarTela('tela-entregador');
+      renderizarEntregador();
+    }
+  }, 700);
+});
+
+function sair() {
+  usuarioLogado = null;
+  mostrarTela('tela-login');
+}
+
+/* ============================================================
+   PAINEL ADMINISTRATIVO
+   ============================================================ */
+function trocarAbaAdmin(aba) {
+  ['painel', 'acompanhamento', 'dados'].forEach(a => $('admin-' + a).classList.add('oculto'));
+  $('admin-' + aba).classList.remove('oculto');
+  document.querySelectorAll('#tela-admin .aba').forEach(b => b.classList.remove('ativa'));
+  event.currentTarget.classList.add('ativa');
+  if (aba === 'dados') renderizarResumoDados();
+}
+
+function renderizarAdmin() {
+  const totalEntregas = ENTREGADORES_FICTICIOS.reduce((s, e) => s + e.entregas, 0);
+  $('m-entregadores').textContent = ENTREGADORES_FICTICIOS.length;
+  $('m-entregas').textContent = totalEntregas;
+  $('m-pendentes').textContent = Math.max(0, totalEntregas - 18);
+  $('tabela-entregadores').innerHTML = ENTREGADORES_FICTICIOS.map(e =>
+    '<tr><td>' + e.matricula + '</td><td>' + e.nome + '</td>' +
+    '<td><span class="badge b-status">' + e.status + '</span></td>' +
+    '<td>' + e.entregas + '</td><td>' + e.atualizado + '</td></tr>'
+  ).join('');
+  $('lista-rotas-acompanhamento').innerHTML = ROTAS_FICTICIAS.map(r => {
+    const pct = r.paradas ? Math.round(100 * r.concluidas / r.paradas) : 0;
+    return '<div class="lista-item"><div class="topo"><strong>🛵 ' + r.entregador + '</strong>' +
+      '<span class="badge b-status">' + r.status + '</span></div>' +
+      '<small style="color:var(--texto2)">Bairros: ' + r.bairros.join(', ') + ' (simulado)</small>' +
+      '<div class="barra-fundo" style="margin-top:8px"><div class="barra-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="progresso-texto">' + r.concluidas + ' de ' + r.paradas + ' paradas (' + pct + '%)</div></div>';
+  }).join('');
+}
+
+function renderizarResumoDados() {
+  const n = notas.length;
+  const concluidas = notas.filter(x => x.concluida === true).length;
+  $('resumo-dados').innerHTML =
+    'Notas registradas neste navegador: <strong>' + n + '</strong><br>' +
+    'Entregas concluídas: <strong>' + concluidas + '</strong><br>' +
+    'Expediente iniciado: <strong>' + (expedienteIniciado ? 'sim' : 'não') + '</strong>';
+}
+
+/* ============================================================
+   EXPEDIENTE E GPS
+   ============================================================ */
+function alternarExpediente() {
+  expedienteIniciado = !expedienteIniciado;
+  localStorage.setItem(CHAVE_EXPEDIENTE, expedienteIniciado ? 'sim' : 'nao');
+  renderizarExpediente();
+  mostrarToast(expedienteIniciado ? 'Expediente iniciado (demonstração).' : 'Expediente encerrado.', 'ok');
+}
+
+function renderizarExpediente() {
+  const btn = $('btn-expediente');
+  if (expedienteIniciado) {
+    $('expediente-status').innerHTML = '🟢 <strong>Expediente em andamento</strong> (demonstrativo) — iniciado às ' +
+      new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    btn.textContent = '⏹️ ENCERRAR EXPEDIENTE';
+    btn.className = 'btn btn-vermelho';
+  } else {
+    $('expediente-status').textContent = 'Expediente não iniciado.';
+    btn.textContent = '▶️ INICIAR EXPEDIENTE';
+    btn.className = 'btn btn-verde';
+  }
+}
+
+function obterGPS() {
+  const saida = $('gps-resultado');
+  saida.classList.remove('oculto');
+  if (!navigator.geolocation) {
+    saida.className = 'faixa faixa-erro';
+    saida.textContent = '❌ GPS indisponível: este navegador não suporta geolocalização.';
+    return;
+  }
+  saida.className = 'faixa faixa-info';
+  saida.innerHTML = '<span class="carregando"></span>Buscando localização...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      saida.className = 'faixa faixa-ok';
+      saida.textContent = '📡 Posição capturada (apenas para exibição neste teste): ' +
+        pos.coords.latitude.toFixed(5) + ', ' + pos.coords.longitude.toFixed(5) +
+        ' — não é rastreamento em tempo real.';
+    },
+    () => {
+      saida.className = 'faixa faixa-erro';
+      saida.textContent = '❌ GPS indisponível: permissão negada ou sinal não encontrado.';
+    },
+    { timeout: 8000 }
+  );
+}
+
+/* ============================================================
+   FOTOS E LEITURA SIMULADA (OCR/IA FUTURO)
+   ============================================================ */
+function fotosSelecionadas(input) {
+  const arquivos = Array.from(input.files || []);
+  input.value = '';
+  const vagas = LIMITE_NOTAS - notas.length;
+  if (vagas <= 0) {
+    mostrarToast('Limite de ' + LIMITE_NOTAS + ' notas atingido no teste.', 'alerta');
+    return;
+  }
+  const selecionadas = arquivos.slice(0, vagas);
+  if (arquivos.length > vagas) mostrarToast('Apenas ' + vagas + ' foto(s) aceita(s) — limite de teste.', 'alerta');
+  if (!selecionadas.length) return;
+
+  const faixa = $('faixa-leitura');
+  faixa.className = 'faixa faixa-info';
+  faixa.innerHTML = '<span class="carregando"></span>Lendo ' + selecionadas.length +
+    ' imagem(ns)... (leitura simulada — OCR/IA real depende de integração futura)';
+
+  selecionadas.forEach((arq, i) => {
+    const leitor = new FileReader();
+    leitor.onload = ev => {
+      setTimeout(() => {
+        notas.push(gerarNotaDemo(arq.name, ev.target.result));
+        salvarLocal();
+        renderizarNotas();
+        renderizarParadas();
+        if (i === selecionadas.length - 1) {
+          faixa.className = 'faixa faixa-ok';
+          faixa.textContent = '✅ Leitura simulada concluída. Revise os dados abaixo e corrija o que for necessário.';
+        }
+      }, 900 + i * 500);
+    };
+    leitor.readAsDataURL(arq);
+  });
+}
+
+function gerarNotaDemo(nomeArquivo, dataUrl) {
+  const numero = 'NF' + Math.floor(100000 + Math.random() * 899999);
+  const duplicada = notas.some(n => n.numeroNota === numero);
+  const bairro = BAIRROS_TESTE[Math.floor(Math.random() * BAIRROS_TESTE.length)];
+  const incompleta = Math.random() < 0.25;
+  return {
+    id: 'n' + Date.now() + Math.floor(Math.random() * 999),
+    numeroNota: numero,
+    destinatario: NOMES_DEMO[Math.floor(Math.random() * NOMES_DEMO.length)],
+    endereco: RUAS_DEMO[Math.floor(Math.random() * RUAS_DEMO.length)],
+    numero: incompleta ? '' : String(Math.floor(10 + Math.random() * 900)),
+    bairro: bairro,
+    cidade: 'Manaus',
+    uf: 'AM',
+    cep: incompleta ? '' : '690' + Math.floor(1000 + Math.random() * 8999) + '-' + String(Math.floor(100 + Math.random() * 899)),
+    latitude: null,
+    longitude: null,
+    statusValidacao: duplicada ? 'duplicado' : (incompleta ? 'incompleto' : 'pendente'),
+    fotoNome: nomeArquivo,
+    fotoPrevia: dataUrl,
+    concluida: null
+  };
+}
+
+function renderizarNotas() {
+  const cont = $('lista-notas');
+  if (!notas.length) {
+    cont.innerHTML = '<p style="font-size:.8rem;color:var(--texto2)">Nenhuma nota registrada ainda.</p>';
+    return;
+  }
+  cont.innerHTML = notas.map(n =>
+    '<div class="lista-item">' +
+      '<div class="topo"><strong>📄 ' + n.numeroNota + '</strong>' + badgeStatus(n.statusValidacao) + '</div>' +
+      '<img class="previa" src="' + n.fotoPrevia + '" alt="Prévia da foto da nota (demonstração)">' +
+      '<small style="color:var(--texto2)">Arquivo: ' + n.fotoNome + '</small>' +
+      '<div class="grid-form" style="margin-top:10px">' +
+        campoNota(n, 'numeroNota', 'Nº da nota') +
+        campoNota(n, 'destinatario', 'Destinatário') +
+        campoNota(n, 'endereco', 'Endereço (rua)') +
+        campoNota(n, 'numero', 'Número') +
+        campoNota(n, 'bairro', 'Bairro') +
+        campoNota(n, 'cidade', 'Cidade') +
+        campoNota(n, 'cep', 'CEP') +
+      '</div>' +
+      '<div class="linha-btn" style="margin-top:10px">' +
+        '<button class="btn btn-verde btn-mini" onclick="validarNota(\'' + n.id + '\')">✔️ Confirmar endereço</button>' +
+        '<button class="btn btn-vermelho btn-mini" onclick="removerNota(\'' + n.id + '\')">🗑️ Remover nota</button>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function campoNota(n, campo, rotulo) {
+  return '<div><label class="rotulo">' + rotulo + '</label>' +
+    '<input value="' + String(n[campo] || '').replace(/"/g, '&quot;') + '" ' +
+    'onchange="editarNota(\'' + n.id + '\',\'' + campo + '\',this.value)"></div>';
+}
+
+function editarNota(id, campo, valor) {
+  const n = notas.find(x => x.id === id);
+  if (!n) return;
+  n[campo] = valor;
+  if (n.statusValidacao === 'duplicado' && campo === 'numeroNota') {
+    n.statusValidacao = enderecoCompleto(n) ? 'validado' : 'incompleto';
+  }
+  salvarLocal();
+  renderizarNotas();
+}
+
+function validarNota(id) {
+  const n = notas.find(x => x.id === id);
+  if (!n) return;
+  if (notas.some(o => o.id !== id && o.numeroNota === n.numeroNota)) {
+    n.statusValidacao = 'duplicado';
+    salvarLocal(); renderizarNotas();
+    mostrarToast('Número de nota duplicado. Corrija antes de confirmar.', 'erro');
+    return;
+  }
+  if (!enderecoCompleto(n)) {
+    n.statusValidacao = 'incompleto';
+    salvarLocal(); renderizarNotas();
+    mostrarToast('Endereço incompleto: preencha rua, número, bairro, cidade e CEP.', 'alerta');
+    return;
+  }
+  n.statusValidacao = 'validado';
+  salvarLocal(); renderizarNotas();
+  mostrarToast('Nota ' + n.numeroNota + ' validada.', 'ok');
+}
+
+function removerNota(id) {
+  notas = notas.filter(x => x.id !== id);
+  salvarLocal();
+  renderizarNotas();
+  renderizarParadas();
+  mostrarToast('Nota removida.', 'info');
+}
+
+/* ============================================================
+   ROTA SIMULADA E GOOGLE MAPS
+   ============================================================ */
+function calcularRota() {
+  const faixa = $('faixa-rota');
+  if (!notas.length) {
+    faixa.className = 'faixa faixa-alerta';
+    faixa.textContent = '⚠️ Registre ao menos uma nota antes de calcular a rota.';
+    return;
+  }
+  faixa.className = 'faixa faixa-info';
+  faixa.innerHTML = '<span class="carregando"></span>Calculando...';
+  setTimeout(() => {
+    rotaCalculada = notas.slice().sort((a, b) =>
+      ORDEM_SIMULADA.indexOf(a.bairro) - ORDEM_SIMULADA.indexOf(b.bairro));
+    faixa.className = 'faixa faixa-alerta';
+    faixa.innerHTML = '⚠️ <strong>Resultado simulado.</strong> Esta ordenação é apenas uma ' +
+      'demonstração de fluxo — não houve otimização real de rotas. A otimização verdadeira ' +
+      'depende da integração com uma API de roteamento.';
+    renderizarParadas();
+    mostrarToast('Rota simulada calculada.', 'info');
+  }, 1200);
+}
+
+function renderizarParadas() {
+  const cont = $('lista-paradas');
+  const lista = rotaCalculada || notas;
+  if (!lista.length) {
+    cont.innerHTML = '<p style="font-size:.8rem;color:var(--texto2)">Nenhuma parada registrada.</p>';
+    $('barra-progresso').style.width = '0%';
+    $('texto-progresso').textContent = 'Nenhuma parada registrada.';
+    return;
+  }
+  cont.innerHTML = lista.map((n, i) => {
+    let cls = '', acao = '';
+    if (n.concluida === true) { cls = 'feita'; acao = '<span class="badge b-entregue">✅ Entregue</span>'; }
+    else if (n.concluida === false) { cls = 'nao-feita'; acao = '<span class="badge b-nao">❌ Não realizada</span>'; }
+    else {
+      acao = '<div class="linha-btn">' +
+        '<button class="btn btn-verde btn-mini" onclick="marcarEntrega(\'' + n.id + '\',true)">✔️</button>' +
+        '<button class="btn btn-vermelho btn-mini" onclick="marcarEntrega(\'' + n.id + '\',false)">✖️</button></div>';
+    }
+    return '<div class="parada ' + cls + '">' +
+      '<div class="ordem">' + (i + 1) + '</div>' +
+      '<div class="info"><strong>' + n.numeroNota + ' — ' + n.destinatario + '</strong>' +
+      '<small>' + (n.endereco || '—') + (n.numero ? ', ' + n.numero : '') + ' · ' + n.bairro + ' · ' + n.cidade + '</small>' +
+      '<small>' + badgeStatus(n.statusValidacao) + '</small></div>' + acao + '</div>';
+  }).join('');
+  atualizarProgresso();
+}
+
+function marcarEntrega(id, ok) {
+  const n = notas.find(x => x.id === id);
+  if (!n) return;
+  n.concluida = ok;
+  salvarLocal();
+  renderizarParadas();
+  mostrarToast(ok ? 'Entrega marcada como concluída.' : 'Entrega marcada como não realizada.', ok ? 'ok' : 'erro');
+}
+
+function atualizarProgresso() {
+  const total = notas.length;
+  const feitas = notas.filter(n => n.concluida === true).length;
+  const pct = total ? Math.round(100 * feitas / total) : 0;
+  $('barra-progresso').style.width = pct + '%';
+  $('texto-progresso').textContent = feitas + ' de ' + total + ' entregas concluídas (' + pct + '%)';
+}
+
+/* Link oficial de navegação do Google Maps (esquema universal, sem chave de API).
+   Só é gerado quando TODAS as paradas estão validadas com endereço completo. */
+function abrirGoogleMaps() {
+  const faixa = $('faixa-rota');
+  const validas = notas.filter(n => n.statusValidacao === 'validado' && enderecoCompleto(n));
+  if (!validas.length) {
+    faixa.className = 'faixa faixa-erro';
+    faixa.textContent = '❌ Nenhuma parada com endereço completo e confirmado. Valide as notas antes de abrir a navegação.';
+    return;
+  }
+  const pendentes = notas.length - validas.length;
+  const enderecos = validas.map(n =>
+    n.endereco + ', ' + n.numero + ' - ' + n.bairro + ', ' + n.cidade + ' - ' + n.uf + ', CEP ' + n.cep);
+  const destino = enderecos[enderecos.length - 1];
+  const waypoints = enderecos.slice(0, -1).join('|');
+  let url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(destino) + '&travelmode=driving';
+  if (waypoints) url += '&waypoints=' + encodeURIComponent(waypoints);
+  window.open(url, '_blank');
+  faixa.className = 'faixa faixa-ok';
+  faixa.innerHTML = '✅ Link de navegação gerado com ' + validas.length + ' parada(s) usando endereços completos.' +
+    (pendentes ? ' ' + pendentes + ' nota(s) ficaram de fora por estarem incompletas ou duplicadas.' : '');
+}
+
+/* ============================================================
+   ARMAZENAMENTO LOCAL (SOMENTE DADOS DEMO)
+   ============================================================ */
+function salvarLocal() {
+  const limpas = notas.map(n => ({ ...n, fotoPrevia: undefined }));
+  localStorage.setItem(CHAVE_NOTAS, JSON.stringify(limpas));
+}
+
+function carregarLocal() {
+  try {
+    const salvo = JSON.parse(localStorage.getItem(CHAVE_NOTAS) || '[]');
+    notas = salvo.map(n => ({ ...n, fotoPrevia: null }));
+  } catch (e) { notas = []; }
+  expedienteIniciado = localStorage.getItem(CHAVE_EXPEDIENTE) === 'sim';
+}
+
+function apagarDados() {
+  if (!confirm('Apagar todos os dados de teste salvos neste navegador?')) return;
+  localStorage.removeItem(CHAVE_NOTAS);
+  localStorage.removeItem(CHAVE_EXPEDIENTE);
+  notas = [];
+  rotaCalculada = null;
+  expedienteIniciado = false;
+  renderizarNotas();
+  renderizarParadas();
+  renderizarExpediente();
+  renderizarResumoDados();
+  mostrarToast('Dados de teste apagados.', 'info');
+}
+
+/* ============================================================
+   ENTREGADOR — RENDERIZAÇÃO
+   ============================================================ */
+function renderizarEntregador() {
+  renderizarExpediente();
+  renderizarNotas();
+  renderizarParadas();
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+carregarLocal();
+</script>
+</body>
+</html>

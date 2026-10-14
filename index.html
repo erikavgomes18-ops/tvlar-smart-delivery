@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TVLAR SMART DELIVERY — MVP Demonstrativo</title>
+<!-- Leitor de texto em imagens (OCR) — gratuito, roda no próprio navegador -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
   :root{
     --fundo:#0f1117; --painel:#171a23; --painel2:#1e2230; --borda:#2a2f42;
@@ -92,6 +94,10 @@
   .b-status{background:#1e1b3a;color:#c4b5fd;border:1px solid var(--roxo)}
   .grid-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .previa{width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--borda);margin-top:8px}
+  details.texto-lido{margin-top:8px;font-size:.7rem;color:var(--texto2)}
+  details.texto-lido summary{cursor:pointer}
+  details.texto-lido pre{white-space:pre-wrap;background:var(--painel);border:1px solid var(--borda);
+    border-radius:8px;padding:8px;margin-top:6px;max-height:120px;overflow:auto}
 
   .barra-fundo{background:var(--painel2);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--borda)}
   .barra-fill{background:linear-gradient(90deg,var(--roxo),var(--verde));height:100%;width:0%;transition:width .4s}
@@ -132,9 +138,9 @@
 <body>
 
 <div class="aviso-global">
-  ⚠️ MVP DEMONSTRATIVO — O tempo real funciona entre abas/janelas do <strong>mesmo navegador</strong>
-  (grátis, sem conta e sem configuração). Posições dos entregadores fictícios são fixas e apenas ilustrativas;
-  o "Entregador de teste" mostra o GPS capturado manualmente. Dados apenas para teste.
+  ⚠️ MVP DEMONSTRATIVO — Leitura de notas por OCR real (gratuito, roda no navegador; pode errar —
+  sempre confira os campos). Tempo real entre abas do mesmo navegador. Posições do mapa são fictícias,
+  exceto o GPS capturado manualmente pelo entregador.
 </div>
 
 <!-- ================= TELA DE LOGIN ================= -->
@@ -154,9 +160,8 @@
       🔑 <strong>Credenciais apenas para teste</strong> (não são reais):<br>
       Administrador — matrícula <strong>1234</strong> / senha <strong>demo123</strong><br>
       Entregador — matrícula <strong>5678</strong> / senha <strong>demo123</strong><br><br>
-      🧪 <strong>Para ver o tempo real:</strong> abra este site em <strong>duas abas</strong> —
-      entre como administrador em uma e como entregador na outra. Tudo que o entregador fizer
-      aparece na hora no painel do administrador.
+      📸 O app lê o endereço da foto da nota (OCR) e preenche os campos sozinho.<br>
+      🧪 Para ver o tempo real: abra o site em <strong>duas abas</strong> — admin em uma, entregador na outra.
     </div>
   </div>
 </section>
@@ -198,7 +203,7 @@
         <h2>🔴 Entregas em tempo real</h2>
         <div class="tabela-scroll">
           <table>
-            <thead><tr><th>Nota</th><th>Destinatário</th><th>Bairro</th><th>Validação</th><th>Entrega</th></tr></thead>
+            <thead><tr><th>Nota</th><th>Destinatário</th><th>Telefone</th><th>Bairro</th><th>Validação</th><th>Entrega</th></tr></thead>
             <tbody id="tabela-tempo-real"></tbody>
           </table>
         </div>
@@ -260,8 +265,10 @@
     <div class="card">
       <h2>📸 Registrar notas fiscais (máx. 10 no teste)</h2>
       <p style="font-size:.78rem;color:var(--texto2);margin-bottom:10px">
-        A leitura das notas é <strong>simulada</strong> neste MVP. Nenhuma foto é enviada
-        para servidores nem salva permanentemente — apenas o nome do arquivo fica no registro de teste.
+        <strong>Leitura automática real:</strong> o app lê o texto da foto e preenche endereço,
+        número, bairro, CEP e telefone do cliente. Depois é só conferir e corrigir o que faltar.
+        💡 Foto nítida, reta e bem iluminada = leitura muito melhor. A primeira leitura baixa o
+        modelo de português (alguns MB) e demora um pouco mais — as próximas são rápidas.
       </p>
       <p class="faixa faixa-info" style="font-size:.75rem">
         🟢 Tudo que você registrar aparece na hora no painel do administrador (aba aberta neste navegador).
@@ -276,11 +283,13 @@
           <input type="file" id="input-galeria" accept="image/*" multiple class="oculto" onchange="fotosSelecionadas(this)">
         </label>
       </div>
+      <button class="btn btn-contorno" onclick="adicionarNotaTeste()">🧪 Adicionar nota de teste (dados fictícios)</button>
       <div id="faixa-leitura"></div>
       <div id="lista-notas"></div>
       <div class="linha-btn" style="margin-top:12px">
         <button class="btn btn-roxo" onclick="calcularRota()">🧮 CALCULAR MELHOR ROTA</button>
         <button class="btn btn-verde" onclick="abrirGoogleMaps()">🗺️ ABRIR NO GOOGLE MAPS</button>
+        <button class="btn btn-contorno" onclick="exportarCSV()">📥 EXPORTAR CSV (ROTA OTIMIZADA)</button>
       </div>
       <div id="faixa-rota"></div>
     </div>
@@ -297,7 +306,7 @@
 
 <footer>
   TVLAR SMART DELIVERY — MVP demonstrativo para testes de fluxo.<br>
-  Tempo real entre abas do mesmo navegador · Sem autenticação real · Sem armazenamento de dados sensíveis.
+  OCR real no navegador · Tempo real entre abas do mesmo navegador · Sem autenticação real · Sem armazenamento de dados sensíveis.
 </footer>
 
 <script>
@@ -327,7 +336,7 @@ const ENTREGADORES_MAPA = [
   { id: 'e-maria',  nome: 'Maria Alves',  bairro: 'Cachoeirinha', status: 'Em rota',    lat: -3.1291, lng: -60.0147 }
 ];
 
-/* Nomes e ruas fictícios para a leitura simulada de notas. */
+/* Nomes e ruas fictícios para a nota de teste. */
 const NOMES_DEMO = ['Maria S.', 'João P.', 'Ana C.', 'Pedro L.', 'Carla M.', 'Lucas F.', 'Rita T.', 'Paulo R.'];
 const RUAS_DEMO = ['Rua das Palmeiras', 'Av. Principal', 'Rua do Comércio', 'Travessa São João', 'Rua Bela Vista'];
 
@@ -339,7 +348,6 @@ let expedienteIniciado = false;
 let notas = [];
 let rotaCalculada = null;
 let entregadorSelecionado = 'e-carlos';
-let ultimoSrcMapa = '';
 
 /* ============================================================
    UTILITÁRIOS
@@ -382,7 +390,6 @@ function enderecoCompleto(n) {
 
 /* ============================================================
    SINCRONIZAÇÃO ENTRE ABAS (GRÁTIS, SEM CONTA, SEM CONFIGURAÇÃO)
-   O navegador avisa as outras abas quando os dados mudam.
    ============================================================ */
 const CANAL = ('BroadcastChannel' in window) ? new BroadcastChannel('tvlar_sd_sync') : null;
 
@@ -391,7 +398,6 @@ function avisarRede() {
 }
 
 function sincronizar() {
-  /* Preserva as prévias de foto que só existem na memória desta aba. */
   const fotos = {};
   notas.forEach(n => { if (n.fotoPrevia) fotos[n.id] = n.fotoPrevia; });
   carregarLocal();
@@ -418,12 +424,8 @@ window.addEventListener('storage', e => {
 
 /* ============================================================
    AUTENTICAÇÃO (DEMONSTRATIVA)
-   Ponto de integração futura: substituir a verificação abaixo
-   por uma chamada real ao backend (ex.: fetch('/api/login')).
-   NÃO usar localStorage como mecanismo de autenticação.
    ============================================================ */
 function autenticarNoBackend(matricula, senha) {
-  /* FUTURO: return fetch('/api/login', {method:'POST', body: JSON.stringify({matricula, senha})}) */
   const u = USUARIOS_DEMO[matricula];
   if (u && u.senha === senha) return { ok: true, perfil: u.perfil, nome: u.nome };
   return { ok: false };
@@ -466,7 +468,7 @@ function sair() {
 }
 
 /* ============================================================
-   PAINEL ADMINISTRATIVO (DADOS REAIS, EM TEMPO REAL)
+   PAINEL ADMINISTRATIVO
    ============================================================ */
 function trocarAbaAdmin(aba) {
   ['painel', 'acompanhamento', 'dados'].forEach(a => $('admin-' + a).classList.add('oculto'));
@@ -494,12 +496,13 @@ function renderizarAdmin() {
 
   const corpo = $('tabela-tempo-real');
   if (!total) {
-    corpo.innerHTML = '<tr><td colspan="5">Nenhuma entrega registrada. Abra o app em outra aba como ' +
+    corpo.innerHTML = '<tr><td colspan="6">Nenhuma entrega registrada. Abra o app em outra aba como ' +
       'entregador e registre notas — elas aparecem aqui na hora.</td></tr>';
   } else {
     corpo.innerHTML = notas.slice().reverse().map(n =>
       '<tr><td>' + n.numeroNota + '</td>' +
       '<td>' + (n.destinatario || '—') + '</td>' +
+      '<td>' + (n.telefone || '—') + '</td>' +
       '<td>' + (n.bairro || '—') + '</td>' +
       '<td>' + badgeStatus(n.statusValidacao) + '</td>' +
       '<td>' + (n.concluida === true ? '✅ Entregue' : (n.concluida === false ? '❌ Não realizada' : '⏳ Pendente')) + '</td></tr>'
@@ -528,7 +531,6 @@ function popularSeletorEntregadores() {
   });
   sel.innerHTML = opcoes;
   sel.value = entregadorSelecionado;
-  /* Se a opção guardada não existe mais (ex.: GPS apagado), volta para a primeira. */
   if (sel.value !== entregadorSelecionado) {
     entregadorSelecionado = sel.options[0].value;
     sel.value = entregadorSelecionado;
@@ -565,9 +567,7 @@ function atualizarMapaEntregador() {
       '<br>Coordenadas de demonstração: ' + e.lat + ', ' + e.lng;
   }
 
-  /* Só recarrega o mapa se a posição mudou (evita piscar a cada sincronização). */
   if (mapa.src !== novaSrc) mapa.src = novaSrc;
-  ultimoSrcMapa = novaSrc;
   info.className = 'faixa ' + (entregadorSelecionado === 'real' && obterGpsEntregador() ? 'faixa-ok' : 'faixa-info');
   info.innerHTML = htmlInfo;
 }
@@ -638,7 +638,6 @@ function obterGPS() {
   saida.innerHTML = '<span class="carregando"></span>Buscando localização...';
   navigator.geolocation.getCurrentPosition(
     pos => {
-      /* Salva a posição para o administrador ver no mapa (tempo real entre abas). */
       localStorage.setItem(CHAVE_GPS, JSON.stringify({
         lat: pos.coords.latitude,
         lng: pos.coords.longitude,
@@ -659,9 +658,110 @@ function obterGPS() {
 }
 
 /* ============================================================
-   FOTOS E LEITURA SIMULADA (OCR/IA FUTURO)
+   OCR REAL — LÊ O TEXTO DA FOTO E PREENCHE OS CAMPOS
+   Usa Tesseract.js (gratuito, roda no navegador, sem conta).
    ============================================================ */
-function fotosSelecionadas(input) {
+const OCR_DISPONIVEL = (typeof Tesseract !== 'undefined');
+
+function lerFotoComOCR(dataUrl, aoProgredir) {
+  return Tesseract.recognize(dataUrl, 'por', {
+    logger: m => {
+      if (m.status === 'recognizing text' && aoProgredir) {
+        aoProgredir(Math.round(100 * m.progress));
+      }
+    }
+  }).then(r => r.data.text || '');
+}
+
+/* Extrai os campos do texto lido (heurística simples para notas brasileiras). */
+function extrairDadosDoTexto(texto) {
+  const d = { numeroNota: '', destinatario: '', endereco: '', numero: '', bairro: '', cidade: '', uf: '', cep: '', telefone: '' };
+  if (!texto) return d;
+  const t = texto.replace(/\r/g, ' ');
+
+  /* CEP — 69000-000 ou 69000000 */
+  const cep = t.match(/\b\d{5}[-\s.]?\d{3}\b/);
+  if (cep) d.cep = cep[0].replace(/\D/g, '').replace(/(\d{5})(\d{3})/, '$1-$2');
+
+  /* Remove o CEP do texto para não confundir com telefone */
+  const tSemCep = cep ? t.replace(cep[0], ' ') : t;
+
+  /* Telefone — com rótulo primeiro (Tel:, Fone:, Celular:...), depois padrão solto */
+  let tel = tSemCep.match(/(?:tel|fone|telefone|cel|celular|whats(?:app)?)\s*[:.\-]?\s*(\+?\d{0,2}[\s-]?\(?\d{2}\)?[\s-]?\d{4,5}[\s-]?\d{4})/i);
+  if (!tel) tel = tSemCep.match(/\(?\d{2}\)?[\s-]?9?\d{4}[\s-]?\d{4}/);
+  if (tel) {
+    let f = tel[0].replace(/[^\d]/g, '');
+    if (f.length === 11) f = '(' + f.slice(0, 2) + ') ' + f.slice(2, 7) + '-' + f.slice(7);
+    else if (f.length === 10) f = '(' + f.slice(0, 2) + ') ' + f.slice(2, 6) + '-' + f.slice(6);
+    else if (f.length === 9) f = f.slice(0, 5) + '-' + f.slice(5);
+    else if (f.length === 8) f = f.slice(0, 4) + '-' + f.slice(4);
+    d.telefone = f;
+  }
+
+  /* Número da nota — NF 123456 / Nº 123456 / NOTA FISCAL 123456 */
+  const nf = t.match(/(?:NF|N\.?\s?F\.?|NOTA\s*FISCAL|N[ºo°])\s*[:#\-]?\s*(\d{4,9})/i);
+  if (nf) d.numeroNota = 'NF' + nf[1];
+
+  /* Destinatário — linha "Cliente:", "Destinatário:", "Nome:"... */
+  const dest = t.match(/(?:cliente|destinat[aá]rio|consumidor|nome)\s*[:\-]\s*([A-Za-zÀ-ú][A-Za-zÀ-ú\s.]{2,40})/i);
+  if (dest) d.destinatario = dest[1].trim();
+
+  /* Endereço — primeira linha com palavra-chave de logradouro */
+  const kw = /(rua|avenida|av\.?|travessa|tv\.?|estrada|rodovia|beco|alameda|conjunto|cj\.?|cond\.?|quadra|qd\.?|lote|lt\.?|ramal|passagem)/i;
+  const linhas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 2 && l.length < 90);
+  for (const linha of linhas) {
+    if (kw.test(linha)) {
+      const m = linha.match(/^(.+?)\s*[,–-]?\s*n?[ºº°]?\s*(\d{1,5})\s*[,–-]?\s*(.*)$/i);
+      if (m) {
+        d.endereco = m[1].replace(/\s+/g, ' ').trim();
+        d.numero = m[2];
+        const resto = (m[3] || '').replace(/^[-–,\s]+/, '').trim();
+        if (resto) d.bairro = resto.split(/[-–,]/)[0].trim();
+      } else {
+        d.endereco = linha.replace(/\s+/g, ' ').trim();
+      }
+      break;
+    }
+  }
+
+  /* Cidade e UF — ex.: "Manaus - AM" */
+  const cid = t.match(/([A-Za-zÀ-ú][A-Za-zÀ-ú\s]{2,25})\s*[-–/]\s*(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO)\b/i);
+  if (cid) {
+    d.cidade = cid[1].trim();
+    d.uf = cid[2].toUpperCase();
+  }
+
+  return d;
+}
+
+function criarNotaDeTexto(texto, nomeArquivo, dataUrl) {
+  const d = extrairDadosDoTexto(texto);
+  const n = {
+    id: 'n' + Date.now() + Math.floor(Math.random() * 999),
+    numeroNota: d.numeroNota || ('NF' + Math.floor(100000 + Math.random() * 899999)),
+    destinatario: d.destinatario || '',
+    endereco: d.endereco || '',
+    numero: d.numero || '',
+    bairro: d.bairro || '',
+    cidade: d.cidade || 'Manaus',
+    uf: d.uf || 'AM',
+    cep: d.cep || '',
+    telefone: d.telefone || '',
+    latitude: null,
+    longitude: null,
+    statusValidacao: 'pendente',
+    fotoNome: nomeArquivo,
+    fotoPrevia: dataUrl,
+    textoLido: (texto || '').slice(0, 500),
+    concluida: null
+  };
+  n.statusValidacao = notas.some(o => o.numeroNota === n.numeroNota)
+    ? 'duplicado'
+    : (enderecoCompleto(n) ? 'pendente' : 'incompleto');
+  return n;
+}
+
+async function fotosSelecionadas(input) {
   const arquivos = Array.from(input.files || []);
   input.value = '';
   const vagas = LIMITE_NOTAS - notas.length;
@@ -674,26 +774,56 @@ function fotosSelecionadas(input) {
   if (!selecionadas.length) return;
 
   const faixa = $('faixa-leitura');
-  faixa.className = 'faixa faixa-info';
-  faixa.innerHTML = '<span class="carregando"></span>Lendo ' + selecionadas.length +
-    ' imagem(ns)... (leitura simulada — OCR/IA real depende de integração futura)';
 
-  selecionadas.forEach((arq, i) => {
-    const leitor = new FileReader();
-    leitor.onload = ev => {
-      setTimeout(() => {
-        notas.push(gerarNotaDemo(arq.name, ev.target.result));
-        salvarLocal();
-        renderizarNotas();
-        renderizarParadas();
-        if (i === selecionadas.length - 1) {
-          faixa.className = 'faixa faixa-ok';
-          faixa.textContent = '✅ Leitura simulada concluída. Revise os dados abaixo e corrija o que for necessário.';
-        }
-      }, 900 + i * 500);
-    };
-    leitor.readAsDataURL(arq);
-  });
+  if (!OCR_DISPONIVEL) {
+    faixa.className = 'faixa faixa-erro';
+    faixa.textContent = '❌ O leitor não carregou (verifique a internet e recarregue a página). Você pode digitar os dados manualmente.';
+    return;
+  }
+
+  for (let i = 0; i < selecionadas.length; i++) {
+    const arq = selecionadas[i];
+    faixa.className = 'faixa faixa-info';
+    faixa.innerHTML = '<span class="carregando"></span>Preparando leitor... (a 1ª leitura baixa o modelo de português e demora mais)';
+
+    try {
+      /* Converte a foto para o formato que o leitor entende */
+      const dataUrl = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.onerror = rej;
+        r.readAsDataURL(arq);
+      });
+
+      /* Lê o texto da imagem */
+      const texto = await lerFotoComOCR(dataUrl, pct => {
+        faixa.innerHTML = '<span class="carregando"></span>Lendo foto ' + (i + 1) + ' de ' + selecionadas.length + '... ' + pct + '%';
+      });
+
+      const nota = criarNotaDeTexto(texto, arq.name, dataUrl);
+      notas.push(nota);
+      salvarLocal();
+      renderizarNotas();
+      renderizarParadas();
+
+      faixa.className = 'faixa faixa-ok';
+      faixa.textContent = '✅ Foto ' + (i + 1) + ' lida! Confira os campos abaixo — a leitura automática pode errar, corrija o que for preciso.';
+    } catch (e) {
+      console.error(e);
+      faixa.className = 'faixa faixa-erro';
+      faixa.textContent = '❌ Não consegui ler essa foto. Tente de novo com mais luz e sem tremor, ou digite os dados manualmente.';
+    }
+  }
+}
+
+/* Nota de teste para experimentar o fluxo sem nota física em mãos. */
+function adicionarNotaTeste() {
+  const n = gerarNotaDemo('nota-teste.jpg', null);
+  notas.push(n);
+  salvarLocal();
+  renderizarNotas();
+  renderizarParadas();
+  mostrarToast('Nota de teste adicionada (dados fictícios).', 'info');
 }
 
 function gerarNotaDemo(nomeArquivo, dataUrl) {
@@ -711,11 +841,13 @@ function gerarNotaDemo(nomeArquivo, dataUrl) {
     cidade: 'Manaus',
     uf: 'AM',
     cep: incompleta ? '' : '690' + Math.floor(1000 + Math.random() * 8999) + '-' + String(Math.floor(100 + Math.random() * 899)),
+    telefone: '(92) 9' + String(Math.floor(1000 + Math.random() * 8999)) + '-' + String(Math.floor(1000 + Math.random() * 8999)),
     latitude: null,
     longitude: null,
     statusValidacao: duplicada ? 'duplicado' : (incompleta ? 'incompleto' : 'pendente'),
     fotoNome: nomeArquivo,
     fotoPrevia: dataUrl,
+    textoLido: '',
     concluida: null
   };
 }
@@ -729,11 +861,13 @@ function renderizarNotas() {
   cont.innerHTML = notas.map(n =>
     '<div class="lista-item">' +
       '<div class="topo"><strong>📄 ' + n.numeroNota + '</strong>' + badgeStatus(n.statusValidacao) + '</div>' +
-      (n.fotoPrevia ? '<img class="previa" src="' + n.fotoPrevia + '" alt="Prévia da foto da nota (demonstração)">' : '') +
-      '<small style="color:var(--texto2)">Arquivo: ' + n.fotoNome + '</small>' +
+      (n.fotoPrevia ? '<img class="previa" src="' + n.fotoPrevia + '" alt="Prévia da foto da nota">' : '') +
+      '<small style="color:var(--texto2)">Arquivo: ' + (n.fotoNome || '—') + '</small>' +
+      (n.textoLido ? '<details class="texto-lido"><summary>Ver texto lido da foto</summary><pre>' + n.textoLido.replace(/</g, '&lt;') + '</pre></details>' : '') +
       '<div class="grid-form" style="margin-top:10px">' +
         campoNota(n, 'numeroNota', 'Nº da nota') +
         campoNota(n, 'destinatario', 'Destinatário') +
+        campoNota(n, 'telefone', 'Telefone do cliente') +
         campoNota(n, 'endereco', 'Endereço (rua)') +
         campoNota(n, 'numero', 'Número') +
         campoNota(n, 'bairro', 'Bairro') +
@@ -794,6 +928,32 @@ function removerNota(id) {
 }
 
 /* ============================================================
+   EXPORTAR CSV — FORMATO DO ROTA OTIMIZADA (rotaotimizada.com.br)
+   Colunas: endereco (obrigatória) e descricao (opcional).
+   ============================================================ */
+function exportarCSV() {
+  const validas = notas.filter(n => n.statusValidacao === 'validado' && enderecoCompleto(n));
+  if (!validas.length) {
+    mostrarToast('Valide os endereços antes de exportar o CSV.', 'alerta');
+    return;
+  }
+  let csv = 'endereco,descricao\n';
+  validas.forEach(n => {
+    const end = n.endereco + (n.numero ? ', ' + n.numero : '') + ' - ' + n.bairro + ' - ' + n.cidade + ' - ' + n.uf + ' - CEP ' + n.cep;
+    const desc = [n.destinatario, n.telefone ? 'Tel: ' + n.telefone : ''].filter(Boolean).join(' - ');
+    csv += '"' + end.replace(/"/g, '""') + '","' + desc.replace(/"/g, '""') + '"\n';
+  });
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'enderecos-tvlar.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  mostrarToast('CSV exportado! Agora importe no rotaotimizada.com.br.', 'ok');
+}
+
+/* ============================================================
    ROTA SIMULADA E GOOGLE MAPS
    ============================================================ */
 function calcularRota() {
@@ -809,9 +969,8 @@ function calcularRota() {
     rotaCalculada = notas.slice().sort((a, b) =>
       ORDEM_SIMULADA.indexOf(a.bairro) - ORDEM_SIMULADA.indexOf(b.bairro));
     faixa.className = 'faixa faixa-alerta';
-    faixa.innerHTML = '⚠️ <strong>Resultado simulado.</strong> Esta ordenação é apenas uma ' +
-      'demonstração de fluxo — não houve otimização real de rotas. A otimização verdadeira ' +
-      'depende da integração com uma API de roteamento.';
+    faixa.innerHTML = '⚠️ <strong>Resultado simulado.</strong> Para a ordem REALMENTE otimizada, ' +
+      'use o botão "EXPORTAR CSV" e importe no rotaotimizada.com.br — ele calcula a melhor sequência de graça.';
     renderizarParadas();
     mostrarToast('Rota simulada calculada.', 'info');
   }, 1200);
@@ -837,8 +996,9 @@ function renderizarParadas() {
     }
     return '<div class="parada ' + cls + '">' +
       '<div class="ordem">' + (i + 1) + '</div>' +
-      '<div class="info"><strong>' + n.numeroNota + ' — ' + n.destinatario + '</strong>' +
-      '<small>' + (n.endereco || '—') + (n.numero ? ', ' + n.numero : '') + ' · ' + n.bairro + ' · ' + n.cidade + '</small>' +
+      '<div class="info"><strong>' + n.numeroNota + ' — ' + (n.destinatario || '—') + '</strong>' +
+      '<small>' + (n.endereco || '—') + (n.numero ? ', ' + n.numero : '') + ' · ' + (n.bairro || '—') + ' · ' + (n.cidade || '—') + '</small>' +
+      (n.telefone ? '<small>📞 ' + n.telefone + '</small>' : '') +
       '<small>' + badgeStatus(n.statusValidacao) + '</small></div>' + acao + '</div>';
   }).join('');
   atualizarProgresso();
@@ -861,8 +1021,7 @@ function atualizarProgresso() {
   $('texto-progresso').textContent = feitas + ' de ' + total + ' entregas concluídas (' + pct + '%)';
 }
 
-/* Link oficial de navegação do Google Maps (esquema universal, sem chave de API).
-   Só é gerado quando TODAS as paradas estão validadas com endereço completo. */
+/* Link oficial de navegação do Google Maps (sem chave de API). */
 function abrirGoogleMaps() {
   const faixa = $('faixa-rota');
   const validas = notas.filter(n => n.statusValidacao === 'validado' && enderecoCompleto(n));
